@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X Redesign — Checkpoint 1</title>
+<style>
+  /* ── Reset & Base ─────────────────────────────── */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0a;
+    --bg-card: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+    --text: #e8e8e8;
+    --text-dim: #888;
+    --accent: #d4d4d4;
+    --metallic: linear-gradient(135deg, #fff 0%, #999 40%, #fff 60%, #777 100%);
+  }
+
+  html {
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', 'SF Pro Display', -apple-system, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Slide Base ───────────────────────────────── */
+  .slide {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 10%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Scroll Animations ────────────────────────── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.15s; }
+  .reveal-delay-2 { transition-delay: 0.30s; }
+  .reveal-delay-3 { transition-delay: 0.45s; }
+  .reveal-delay-4 { transition-delay: 0.60s; }
+  .reveal-delay-5 { transition-delay: 0.75s; }
+
+  /* ── Typography ───────────────────────────────── */
+  .slide-label {
+    font-size: 1.5rem;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .slide-title {
+    font-size: clamp(3rem, 6vw, 4.5rem);
+    font-weight: 700;
+    background: linear-gradient(90deg, #fff 0%, #999 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .slide-subtitle {
+    font-size: 1.5rem;
+    color: var(--text-dim);
+    max-width: 80%;
+    text-align: center;
+    line-height: 1.7;
+  }
+
+  /* ═══════════════════════════════════════════════
+     SLIDE 1 — HERO
+     ═══════════════════════════════════════════════ */
+  .hero {
+    background: radial-gradient(ellipse at 50% 40%, #151525 0%, #0a0a0c 70%);
+  }
+  .hero-content {
+    text-align: center;
+    z-index: 2;
+    position: relative;
+  }
+  .x-logo {
+    font-size: clamp(10rem, 16vw, 14rem);
+    font-weight: 900;
+    line-height: 1;
+    font-family: 'Inter', Arial, sans-serif;
+    background: linear-gradient(180deg, #e0e0e0 0%, #a0a0a0 40%, #707070 100%);
+    background-size: 100% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 5s ease-in-out infinite;
+    margin-bottom: 28px;
+  }
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 0%; }
+    50% { background-position: 0% 100%; }
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: none;
+    background: linear-gradient(90deg, #ffffff 0%, #999999 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+  .hero .checkpoint {
+    font-size: 1.6rem;
+    font-weight: 400;
+    letter-spacing: 12px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+  }
+
+  /* Drifting Stars */
+  .star-field {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    animation: drift var(--drift-dur) linear infinite, star-fade var(--fade-dur) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+  @keyframes drift {
+    from { transform: translateY(0); }
+    to { transform: translateY(-110vh); }
+  }
+  @keyframes star-fade {
+    0%, 100% { opacity: 0; }
+    20%, 80% { opacity: var(--star-opacity); }
+  }
+
+  /* ═══════════════════════════════════════════════
+     SLIDE 2 — TEAM
+     ═══════════════════════════════════════════════ */
+  .team-rows {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+    margin-top: 48px;
+    width: 80%;
+    max-width: 1100px;
+  }
+  .team-row-top, .team-row-bottom {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    flex-wrap: wrap;
+  }
+  .team-card {
+    text-align: center;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+  }
+  .team-card:hover {
+    transform: translateY(-4px);
+  }
+  .team-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #333, #555);
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ccc;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.12);
+  }
+  .team-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .team-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #fff 0%, #999 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ═══════════════════════════════════════════════
+     SLIDE 3 — WHAT HAVE WE DONE
+     ═══════════════════════════════════════════════ */
+  .phases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+    width: 80%;
+    max-width: 1100px;
+    margin-top: 48px;
+  }
+  .phase-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .phase-number {
+    font-size: 3.5rem;
+    font-weight: 800;
+    background: var(--metallic);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+  .phase-card h3 { font-size: 1.5rem; margin-bottom: 10px; }
+  .phase-card p { font-size: 1.5rem; color: var(--text-dim); line-height: 1.5; }
+  .back-note {
+    margin-top: 40px;
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 1.5rem;
+  }
+
+  /* ═══════════════════════════════════════════════
+     SLIDE 4 — PAIN POINT AUDIT (Phone Mockups)
+     ═══════════════════════════════════════════════ */
+  .mockups-row {
+    display: flex;
+    gap: 48px;
+    margin-top: 48px;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    width: 90%;
+    max-width: 1200px;
+  }
+  .phone-mockup {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .phone-frame {
+    width: 280px;
+    height: 580px;
+    border-radius: 36px;
+    border: 3px solid rgba(255,255,255,0.15);
+    overflow: hidden;
+    background: #000;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .phone-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+  .phone-label {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* Hand-drawn annotation circles */
+  .annotation-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .annotation-layer svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .hand-circle {
+    fill: none;
+    stroke: #ff4444;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-dasharray: var(--len);
+    stroke-dashoffset: var(--len);
+    opacity: 0;
+  }
+  .hand-line {
+    fill: none;
+    stroke: #ff4444;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: var(--len);
+    stroke-dashoffset: var(--len);
+  }
+  .phone-mockup.visible .hand-circle,
+  .phone-mockup.visible .hand-line {
+    opacity: 1;
+    animation: draw-stroke 1.2s ease forwards;
+  }
+  .phone-mockup.visible .hand-circle.delay-1,
+  .phone-mockup.visible .hand-line.delay-1 { animation-delay: 0.8s; }
+  .phone-mockup.visible .hand-circle.delay-2,
+  .phone-mockup.visible .hand-line.delay-2 { animation-delay: 1.6s; }
+
+  @keyframes draw-stroke {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* Annotation callout labels */
+  .callout {
+    position: absolute;
+    font-size: 0.85rem;
+    color: #ff4444;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    line-height: 1.3;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .phone-mockup.visible .callout { opacity: 1; transform: translateY(0); }
+  .phone-mockup.visible .callout.delay-1 { transition-delay: 1.2s; }
+  .phone-mockup.visible .callout.delay-2 { transition-delay: 2.0s; }
+
+  /* ═══════════════════════════════════════════════
+     SLIDE 5 — COMPETITOR ANALYSIS
+     ═══════════════════════════════════════════════ */
+  .competitor-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    width: 80%;
+    max-width: 1100px;
+    margin-top: 48px;
+  }
+  .competitor-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px 24px;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .competitor-card:hover {
+    border-color: rgba(255,255,255,0.2);
+    transform: translateY(-4px);
+  }
+  .competitor-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .competitor-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .competitor-card h3 { font-size: 1.5rem; font-weight: 700; }
+  .competitor-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .competitor-card ul li {
+    font-size: 1.5rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    padding: 6px 0;
+    padding-left: 20px;
+    position: relative;
+  }
+  .competitor-card ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 14px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-dim);
+  }
+
+  /* ═══════════════════════════════════════════════
+     SLIDE 6 — USER RESEARCH
+     ═══════════════════════════════════════════════ */
+  .research-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    width: 80%;
+    max-width: 1100px;
+    margin-top: 48px;
+  }
+  .method-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 44px 40px;
+    position: relative;
+  }
+  .method-badge {
+    display: inline-block;
+    font-size: 1.5rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .method-card h3 { font-size: 1.75rem; margin-bottom: 14px; font-weight: 700; }
+  .method-card p { font-size: 1.5rem; color: var(--text-dim); line-height: 1.6; }
+  .method-stat {
+    font-size: 3.5rem;
+    font-weight: 800;
+    background: var(--metallic);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 16px 0;
+  }
+
+  /* Interview card: left info + right issues */
+  .interview-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 40px;
+    align-items: start;
+  }
+  .interview-issues {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .issue-item h4 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .quote {
+    font-style: italic;
+    color: var(--accent);
+    border-left: 3px solid rgba(255,255,255,0.15);
+    padding-left: 20px;
+    margin-top: 8px;
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+
+  /* ═══════════════════════════════════════════════
+     SLIDES 7-10 — PERSONAS & JOURNEYS
+     ═══════════════════════════════════════════════ */
+  .persona-card-full {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 52px 48px;
+    width: 80%;
+    max-width: 1100px;
+    backdrop-filter: blur(10px);
+  }
+  .persona-header {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .persona-avatar-lg {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #333, #555);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    flex-shrink: 0;
+  }
+  .persona-meta h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #fff 0%, #999 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .persona-meta p { font-size: 1.5rem; color: var(--text-dim); }
+  .persona-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+  }
+  .persona-detail h4 {
+    font-size: 1.5rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .persona-detail p { font-size: 1.5rem; color: var(--accent); line-height: 1.5; }
+
+  /* ── Journey Graph — Emotional Curve (JSX Port) ── */
+  .jg-wrap {
+    width: 100%;
+    max-width: 1060px;
+    margin-top: 32px;
+    position: relative;
+  }
+  .jg-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .jg-title { font-size: 1.4rem; font-weight: 700; color: var(--text); }
+  .jg-legend { display: flex; gap: 20px; font-size: 0.8rem; color: #aaa; }
+  .jg-legend span { display: flex; align-items: center; gap: 6px; }
+  .jg-chart {
+    position: relative;
+    width: 1060px;
+    max-width: 100%;
+    height: 420px;
+  }
+  .jg-chart svg { position: absolute; inset: 0; overflow: visible; }
+  /* Keyframes matching JSX exactly */
+  @keyframes jg-expandRing {
+    0%   { r: 10; opacity: 0.9; }
+    100% { r: 44; opacity: 0; }
+  }
+  @keyframes jg-popDot {
+    0%   { transform: scale(0); }
+    60%  { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+  @keyframes jg-labelSlideIn {
+    0%   { opacity: 0; transform: translate(-50%, 6px); }
+    100% { opacity: 1; transform: translate(-50%, 0); }
+  }
+  @keyframes jg-labelRollUp {
+    0%   { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -22px); }
+  }
+  @keyframes jg-emojiBounce {
+    0%   { opacity: 0; transform: translate(-50%, -18px) scale(0.5); }
+    60%  { transform: translate(-50%, 4px) scale(1.15); opacity: 1; }
+    100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+  }
+  @keyframes jg-badgePop {
+    0%   { opacity: 0; transform: translate(-50%, 0) scale(0.7); }
+    70%  { transform: translate(-50%, 0) scale(1.08); opacity: 1; }
+    100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+  }
+  @keyframes jg-glowPulse {
+    0%, 100% { filter: drop-shadow(0 0 5px currentColor); }
+    50%      { filter: drop-shadow(0 0 14px currentColor); }
+  }
+  /* Overlay elements */
+  .jg-overlay {
+    position: absolute;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .jg-step-label {
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #000;
+    letter-spacing: 0.3px;
+  }
+  .jg-emoji {
+    font-size: 32px;
+    line-height: 1;
+  }
+  .jg-badge {
+    background: rgba(10,10,10,0.85);
+    padding: 3px 11px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+  }
+  .jg-xlabel {
+    position: absolute;
+    font-size: 11px;
+    color: #555;
+    letter-spacing: 0.2px;
+    transform: translateX(-50%);
+  }
+
+  /* ═══════════════════════════════════════════════
+     SLIDE 11 — PROBLEMS
+     ═══════════════════════════════════════════════ */
+  .problems-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 32px;
+    width: 80%;
+    max-width: 1100px;
+    margin-top: 48px;
+  }
+  .problem-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .problem-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #f87171, #fb923c, #facc15);
+  }
+  .problem-number {
+    font-size: 3rem;
+    font-weight: 900;
+    color: rgba(255,255,255,0.06);
+    position: absolute;
+    top: 12px;
+    right: 20px;
+    font-family: 'SF Mono', monospace;
+  }
+  .problem-card h3 { font-size: 1.75rem; margin-bottom: 14px; font-weight: 700; }
+  .problem-card p { font-size: 1.5rem; color: var(--text-dim); line-height: 1.6; }
+
+  /* ═══════════════════════════════════════════════
+     SLIDE 12 — NEXT STEPS
+     ═══════════════════════════════════════════════ */
+  .next-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 80%;
+    max-width: 800px;
+    margin-top: 48px;
+  }
+  .step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px;
+  }
+  .step-num {
+    font-size: 2rem;
+    font-weight: 800;
+    background: var(--metallic);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    flex-shrink: 0;
+    line-height: 1;
+    margin-top: 2px;
+  }
+  .step-item h3 { font-size: 1.75rem; margin-bottom: 6px; }
+  .step-item p { font-size: 1.5rem; color: var(--text-dim); line-height: 1.5; }
+
+  .footer-note {
+    margin-top: 48px;
+    font-size: 1.5rem;
+    color: #444;
+    letter-spacing: 3px;
+    font-family: 'SF Mono', monospace;
+  }
+
+  /* ── Scrollbar ────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+  /* ── Responsive ───────────────────────────────── */
+  @media (max-width: 768px) {
+    .slide { padding: 40px 20px; }
+    .persona-card-full { padding: 28px 20px; }
+    .persona-header { flex-direction: column; text-align: center; }
+    .mockups-row { gap: 32px; }
+    .phone-frame { width: 240px; height: 500px; }
+    .callout { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 1 — HERO
+     ═══════════════════════════════════════════════ -->
+<section class="slide hero" id="hero">
+  <div class="star-field" id="starfield"></div>
+  <div class="hero-content">
+    <div class="x-logo">X</div>
+    <h1>X Team</h1>
+    <p class="checkpoint">Checkpoint 1</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 2 — TEAM
+     ═══════════════════════════════════════════════ -->
+<section class="slide" id="team">
+  <p class="slide-label reveal">Our Team</p>
+  <h1 class="slide-title reveal reveal-delay-1">Meet the Team</h1>
+  <div class="team-rows">
+    <div class="team-row-top">
+      <div class="team-card reveal reveal-delay-1">
+        <div class="team-avatar"><img src="assets/daria.png" alt="Daria"></div>
+        <h3>Daria Meshcheriakova</h3>
+      </div>
+      <div class="team-card reveal reveal-delay-2">
+        <div class="team-avatar"><img src="https://i.pravatar.cc/200?img=32" alt="Megan"></div>
+        <h3>Megan Weiss</h3>
+      </div>
+      <div class="team-card reveal reveal-delay-3">
+        <div class="team-avatar"><img src="https://i.pravatar.cc/200?img=9" alt="Amy"></div>
+        <h3>Amy Wang</h3>
+      </div>
+    </div>
+    <div class="team-row-bottom">
+      <div class="team-card reveal reveal-delay-4">
+        <div class="team-avatar"><img src="https://i.pravatar.cc/200?img=68" alt="Dhruv"></div>
+        <h3>Dhruv Sawhney</h3>
+      </div>
+      <div class="team-card reveal reveal-delay-5">
+        <div class="team-avatar"><img src="https://i.pravatar.cc/200?img=59" alt="Nipun"></div>
+        <h3>Nipun Chandra Surnilla</h3>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 3 — WHAT HAVE WE DONE
+     ═══════════════════════════════════════════════ -->
+<section class="slide" id="overview">
+  <p class="slide-label reveal">Overview</p>
+  <h1 class="slide-title reveal reveal-delay-1">What Have We Done?</h1>
+  <div class="phases">
+    <div class="phase-card reveal reveal-delay-1">
+      <div class="phase-number">01</div>
+      <h3>Pain Point Audit</h3>
+      <p>We interacted with the app for 30+ minutes to find usability issues.</p>
+    </div>
+    <div class="phase-card reveal reveal-delay-2">
+      <div class="phase-number">02</div>
+      <h3>User Research</h3>
+      <p>We interviewed 11 participants and conducted web scraping.</p>
+    </div>
+    <div class="phase-card reveal reveal-delay-3">
+      <div class="phase-number">03</div>
+      <h3>Personas &amp; Journeys</h3>
+      <p>We synthesized the data into personas and journey maps.</p>
+    </div>
+  </div>
+  <p class="back-note reveal reveal-delay-4">Let's go back to the beginning of February&hellip;</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 4 — PAIN POINT AUDIT
+     ═══════════════════════════════════════════════ -->
+<section class="slide" id="painpoints">
+  <p class="slide-label reveal">Phase 01</p>
+  <h1 class="slide-title reveal reveal-delay-1">Pain Point Audit</h1>
+  <p class="slide-subtitle reveal reveal-delay-2">We used the app for 30+ minutes per screen to document usability issues.</p>
+
+  <div class="mockups-row">
+
+    <!-- ── PHONE 1: Home Feed ── -->
+    <div class="phone-mockup reveal reveal-delay-1">
+      <div class="phone-frame">
+        <img src="assets/XHome.PNG" alt="X Home Feed">
+        <div class="annotation-layer">
+          <svg viewBox="0 0 280 580">
+            <!-- Circle around engagement buttons row (comment, retweet, like, views, bookmark, share) -->
+            <ellipse class="hand-circle" cx="140" cy="155" rx="130" ry="22" style="--len:820" transform="rotate(-1 140 155)"/>
+            <!-- Circle around Grok icon area at bottom nav -->
+            <ellipse class="hand-circle delay-1" cx="140" cy="556" rx="28" ry="20" style="--len:310"/>
+            <!-- Line pointing to premium ad content -->
+            <path class="hand-line delay-2" d="M 260 430 Q 275 410 270 390" style="--len:60"/>
+          </svg>
+        </div>
+      </div>
+      <p class="phone-label">Home Feed</p>
+    </div>
+
+    <!-- ── PHONE 2: Navigation / Sidebar ── -->
+    <div class="phone-mockup reveal reveal-delay-2">
+      <div class="phone-frame">
+        <img src="assets/XNavBar.PNG" alt="X Navigation Sidebar">
+        <div class="annotation-layer">
+          <svg viewBox="0 0 280 580">
+            <!-- Circle around Premium menu item -->
+            <ellipse class="hand-circle" cx="150" cy="275" rx="110" ry="24" style="--len:700"/>
+            <!-- Circle around too many menu items -->
+            <rect class="hand-circle delay-1" x="20" y="195" width="240" height="380" rx="16" style="--len:1240"/>
+            <!-- Circle around Download Grok -->
+            <ellipse class="hand-circle delay-2" cx="155" cy="510" rx="115" ry="22" style="--len:720"/>
+          </svg>
+        </div>
+      </div>
+      <p class="phone-label">Navigation</p>
+    </div>
+
+    <!-- ── PHONE 3: Profile ── -->
+    <div class="phone-mockup reveal reveal-delay-3">
+      <div class="phone-frame">
+        <img src="assets/XProfiles.jpeg" alt="X Profile Screen">
+        <div class="annotation-layer">
+          <svg viewBox="0 0 280 580">
+            <!-- Circle around Get Verified badge/button -->
+            <ellipse class="hand-circle" cx="195" cy="223" rx="60" ry="16" style="--len:400"/>
+            <!-- Circle around community section taking space -->
+            <ellipse class="hand-circle delay-1" cx="140" cy="410" rx="125" ry="60" style="--len:950"/>
+          </svg>
+        </div>
+      </div>
+      <p class="phone-label">Profile</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 5 — COMPETITOR ANALYSIS
+     ═══════════════════════════════════════════════ -->
+<section class="slide" id="competitors">
+  <p class="slide-label reveal">Landscape</p>
+  <h1 class="slide-title reveal reveal-delay-1">Competitor Analysis</h1>
+  <p class="slide-subtitle reveal reveal-delay-2">We studied 5 competing platforms to understand what users are gravitating toward — and why.</p>
+  <div class="competitor-grid">
+    <div class="competitor-card reveal reveal-delay-1">
+      <div class="competitor-header">
+        <img class="competitor-logo" src="assets/Reddit_Logo.png" alt="Reddit">
+        <h3>Reddit</h3>
+      </div>
+      <ul>
+        <li>Community-driven forum with topic-specific subreddits</li>
+        <li>Strong moderation tools give users control</li>
+        <li>Threaded discussions promote deeper conversation</li>
+      </ul>
+    </div>
+    <div class="competitor-card reveal reveal-delay-2">
+      <div class="competitor-header">
+        <img class="competitor-logo" src="assets/Threads_Logo.png" alt="Threads">
+        <h3>Threads</h3>
+      </div>
+      <ul>
+        <li>Text-based social platform by Meta</li>
+        <li>Seamless Instagram integration for onboarding</li>
+        <li>Cleaner, ad-light feed focused on conversation</li>
+      </ul>
+    </div>
+    <div class="competitor-card reveal reveal-delay-3">
+      <div class="competitor-header">
+        <img class="competitor-logo" src="assets/Mastodon_Logo.png" alt="Mastodon">
+        <h3>Mastodon</h3>
+      </div>
+      <ul>
+        <li>Decentralized, open-source social network</li>
+        <li>Chronological feed with no algorithm</li>
+        <li>User-owned servers give full data control</li>
+      </ul>
+    </div>
+    <div class="competitor-card reveal reveal-delay-4">
+      <div class="competitor-header">
+        <img class="competitor-logo" src="assets/Bluesky_Logo.svg" alt="Bluesky">
+        <h3>Bluesky</h3>
+      </div>
+      <ul>
+        <li>Open protocol with user-controlled algorithms</li>
+        <li>Custom feeds let users curate their experience</li>
+        <li>Transparent moderation builds trust</li>
+      </ul>
+    </div>
+    <div class="competitor-card reveal reveal-delay-5">
+      <div class="competitor-header">
+        <img class="competitor-logo" src="assets/Discord_Logo.avif" alt="Discord">
+        <h3>Discord</h3>
+      </div>
+      <ul>
+        <li>Server-based communities with rich media</li>
+        <li>Voice, video, and live interaction built in</li>
+        <li>Role-based permissions for effective moderation</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 6 — USER RESEARCH
+     ═══════════════════════════════════════════════ -->
+<section class="slide" id="research">
+  <p class="slide-label reveal">Phase 02</p>
+  <h1 class="slide-title reveal reveal-delay-1">User Research</h1>
+  <!-- Stats Banner -->
+  <div class="research-stats reveal reveal-delay-2" style="display:flex;justify-content:center;gap:80px;margin-bottom:40px;padding:40px 0;">
+    <div style="text-align:center;">
+      <div class="count-up" data-target="11" style="font-size:5rem;font-weight:700;background:linear-gradient(90deg,#fff 0%,#999 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;">0</div>
+      <p style="font-size:1rem;text-transform:uppercase;letter-spacing:3px;color:var(--text-dim);margin-top:12px;">Participants Interviewed</p>
+    </div>
+    <div style="text-align:center;">
+      <div class="count-up" data-target="50" style="font-size:5rem;font-weight:700;background:linear-gradient(90deg,#fff 0%,#999 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;">0</div>
+      <p style="font-size:1rem;text-transform:uppercase;letter-spacing:3px;color:var(--text-dim);margin-top:12px;">Platform Comments Scraped</p>
+    </div>
+    <div style="text-align:center;">
+      <div class="count-up" data-target="29" style="font-size:5rem;font-weight:700;background:linear-gradient(90deg,#fff 0%,#999 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;">0</div>
+      <p style="font-size:1rem;text-transform:uppercase;letter-spacing:3px;color:var(--text-dim);margin-top:12px;">Unique Issues Identified</p>
+    </div>
+  </div>
+
+  <div class="research-stack">
+
+    <!-- Card 1: User Interviews -->
+    <div class="method-card reveal reveal-delay-2">
+      <span class="method-badge">Qualitative</span>
+      <h3 style="margin-top:12px;">User Interviews</h3>
+      <div style="display:flex;flex-direction:column;gap:20px;margin-top:24px;">
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:24px 28px;">
+          <h4 style="margin-bottom:8px;">Feature Overload &amp; Clutter</h4>
+          <div class="quote">"There were just a lot of symbols and buttons, too much."</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:24px 28px;">
+          <h4 style="margin-bottom:8px;">Grok Forced Into the Experience</h4>
+          <div class="quote">"Finding the Grok button was not easy, and he hates the feature."</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:24px 28px;">
+          <h4 style="margin-bottom:8px;">Lists &amp; Navigation Confusion</h4>
+          <div class="quote">"I don't know what are the lists?? Like I have been using that, or wow, I haven't seen communities, what is studio lab??"</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Web Scraping -->
+    <div class="method-card reveal reveal-delay-3">
+      <span class="method-badge">Data Mining</span>
+      <h3 style="margin-top:12px;">Web Scraping</h3>
+      <div style="display:flex;flex-direction:column;gap:20px;margin-top:24px;">
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:24px 28px;">
+          <h4 style="margin-bottom:8px;">Long Posts Load a New Page</h4>
+          <div class="quote">"The worst problem are posts that are long that require you to click 'more' to see the rest of the post, instead of showing more text below it loads a new page."</div>
+          <p style="font-size:0.85rem;color:var(--text-dim);margin-top:10px;">— @sadiporter2966 · YouTube</p>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:24px 28px;">
+          <h4 style="margin-bottom:8px;">Notifications Have No Filtering</h4>
+          <div class="quote">"All types of notifications are grouped together in the same menu… Imagine having to pass through a lot of like notifications when you only want to find a reply notification you missed."</div>
+          <p style="font-size:0.85rem;color:var(--text-dim);margin-top:10px;">— @Stake2_ · YouTube</p>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:24px 28px;">
+          <h4 style="margin-bottom:8px;">Like Button &amp; Icons Too Small</h4>
+          <div class="quote">"One of the things I hate in the X redesigns is the like button and all's size being decreased so can't click them and accidentally either click a different button or open the post."</div>
+          <p style="font-size:0.85rem;color:var(--text-dim);margin-top:10px;">— @_DreamzGaming · YouTube</p>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:24px 28px;">
+          <h4 style="margin-bottom:8px;">No Search Within Liked Posts</h4>
+          <div class="quote">"One thing that I really hate is that we can't search on our liked posts and instead have to scroll forever to find the post we need."</div>
+          <p style="font-size:0.85rem;color:var(--text-dim);margin-top:10px;">— @_EDM11 · YouTube</p>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:24px 28px;">
+          <h4 style="margin-bottom:8px;">Left Sidebar Still Overcrowded</h4>
+          <div class="quote">"The left side menu is still too crowded, the settings menu as well. Some resizing on the profile would be nice as well."</div>
+          <p style="font-size:0.85rem;color:var(--text-dim);margin-top:10px;">— @DeanMMJ · YouTube</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 7 — PERSONA 1 (SPORTY SARAH)
+     ═══════════════════════════════════════════════ -->
+<section class="slide" id="persona1">
+  <p class="slide-label reveal">Persona</p>
+  <h1 class="slide-title reveal reveal-delay-1">Persona 1</h1>
+  <div class="persona-card-full reveal reveal-delay-2">
+    <div class="persona-header">
+      <div class="persona-avatar-lg" style="overflow:hidden;">
+        <img src="assets/sarah.png" alt="Sporty Sarah" style="width:180%;height:180%;object-fit:cover;object-position:center center;margin:-40% 0 0 -40%;">
+      </div>
+      <div class="persona-meta">
+        <h2>Sporty Sarah</h2>
+        <p style="display:inline-block;background:#f5c518;color:#000;padding:2px 10px;border-radius:10px;font-size:0.85rem;font-weight:600;margin-bottom:8px;">Experienced User</p>
+        <p>27 · Sports Marketing · Chicago, IL</p>
+        <p style="color:var(--text-dim);font-size:0.95rem;margin-top:4px;">Interests: Sports, Pop Culture, Politics</p>
+      </div>
+    </div>
+    <div class="persona-details" style="display:flex;flex-direction:column;gap:24px;">
+      <div class="persona-detail">
+        <h4>Bio</h4>
+        <p>Sarah was born and raised in Chicago, and attended UIUC for college. She loves everything sports-related, and works in Social Media marketing for the Chicago Cubs. She lives a fast-paced lifestyle and is very active online. She likes staying caught up on all current news, no matter the topic. She creates posts on X for work, but also loves to use it for personal use.</p>
+      </div>
+      <div style="display:flex;gap:24px;width:100%;">
+        <div class="persona-detail" style="flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;">
+          <h4>Pain Points</h4>
+          <ul style="list-style:none;padding:0;margin:0;">
+            <li style="font-size:1.1rem;color:var(--accent);line-height:1.5;padding:14px 0 14px 20px;position:relative;"><span style="position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:block;"></span>Too many unnecessary or confusing features</li>
+            <li style="font-size:1.1rem;color:var(--accent);line-height:1.5;padding:14px 0 14px 20px;position:relative;"><span style="position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:block;"></span>Grok/AI everywhere</li>
+            <li style="font-size:1.1rem;color:var(--accent);line-height:1.5;padding:14px 0 14px 20px;position:relative;"><span style="position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:block;"></span>Doesn't understand difference between lists and communities</li>
+          </ul>
+        </div>
+        <div class="persona-detail" style="flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;">
+          <h4>Needs</h4>
+          <ul style="list-style:none;padding:0;margin:0;">
+            <li style="font-size:1.1rem;color:var(--accent);line-height:1.5;padding:14px 0 14px 20px;position:relative;"><span style="position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:block;"></span>Easy to quickly post</li>
+            <li style="font-size:1.1rem;color:var(--accent);line-height:1.5;padding:14px 0 14px 20px;position:relative;"><span style="position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:block;"></span>Many options for engagement with fans</li>
+            <li style="font-size:1.1rem;color:var(--accent);line-height:1.5;padding:14px 0 14px 20px;position:relative;"><span style="position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:block;"></span>Ability to search and find what she's looking for</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 8 — JOURNEY 1 (SARAH) — Emotional Graph
+     ═══════════════════════════════════════════════ -->
+<section class="slide" id="journey1">
+  <p class="slide-label reveal">User Journey</p>
+  <h1 class="slide-title reveal reveal-delay-1">Sarah's Journey</h1>
+  <div class="jg-wrap reveal reveal-delay-2" id="j1-graph">
+    <div class="jg-header">
+      <span class="jg-title">Emotional Journey</span>
+      <div class="jg-legend">
+        <span><span style="color:#4ade80;margin-right:4px;">&#9679;</span>Positive</span>
+        <span><span style="color:#f87171;margin-right:4px;">&#9679;</span>Negative</span>
+      </div>
+    </div>
+    <div class="jg-chart" id="j1-chart">
+      <svg width="1060" height="420" id="j1-svg">
+        <defs>
+          <filter id="jg-glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <!-- Grid line -->
+        <line x1="80" y1="240" x2="1020" y2="240" stroke="#ffffff10" stroke-width="1" stroke-dasharray="4 8"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 9 — PERSONA 2 (NORMAL NORA)
+     ═══════════════════════════════════════════════ -->
+<section class="slide" id="persona2">
+  <p class="slide-label reveal">Persona</p>
+  <h1 class="slide-title reveal reveal-delay-1">Persona 2</h1>
+  <div class="persona-card-full reveal reveal-delay-2">
+    <div class="persona-header">
+      <div class="persona-avatar-lg" style="overflow:hidden;">
+        <img src="assets/nora.png" alt="Normal Nora" style="width:180%;height:180%;object-fit:cover;object-position:center center;margin:-40% 0 0 -40%;">
+      </div>
+      <div class="persona-meta">
+        <h2>Normal Nora</h2>
+        <p style="display:inline-block;background:#f5c518;color:#000;padding:2px 10px;border-radius:10px;font-size:0.85rem;font-weight:600;margin-bottom:8px;">Social User</p>
+        <p>30 · Market Analyst · Stockholm</p>
+        <p style="color:var(--text-dim);font-size:0.95rem;margin-top:4px;">Most Used Apps: X, Instagram, Reddit &amp; WhatsApp</p>
+        <p style="color:var(--text-dim);font-size:0.95rem;margin-top:2px;">Hobbies: DJ Mixing, Painting &amp; Photography</p>
+      </div>
+    </div>
+    <div class="persona-details" style="display:flex;flex-direction:column;gap:24px;">
+      <div class="persona-detail">
+        <h4>Bio</h4>
+        <p>Normal Nora is a social human being, she likes to spend time with family and friends. Instagram is a great place for her, but it has a different use case when compared to 'X'. She feels that 'X' must allow friends to share textual ideas with each other and publicly, which is not a major selling point of Instagram.</p>
+      </div>
+      <div style="display:flex;gap:24px;width:100%;">
+        <div class="persona-detail" style="flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;">
+          <h4>Pain Points</h4>
+          <ul style="list-style:none;padding:0;margin:0;">
+            <li style="font-size:1.1rem;color:var(--accent);line-height:1.5;padding:14px 0 14px 20px;position:relative;"><span style="position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:block;"></span>The feed does not have a specific structure</li>
+            <li style="font-size:1.1rem;color:var(--accent);line-height:1.5;padding:14px 0 14px 20px;position:relative;"><span style="position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:block;"></span>Filtering in search lacks options</li>
+            <li style="font-size:1.1rem;color:var(--accent);line-height:1.5;padding:14px 0 14px 20px;position:relative;"><span style="position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:block;"></span>The messages tab is not very intuitive</li>
+          </ul>
+        </div>
+        <div class="persona-detail" style="flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;">
+          <h4>Needs</h4>
+          <ul style="list-style:none;padding:0;margin:0;">
+            <li style="font-size:1.1rem;color:var(--accent);line-height:1.5;padding:14px 0 14px 20px;position:relative;"><span style="position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:block;"></span>Customisable feed with options to include specific interests/profiles</li>
+            <li style="font-size:1.1rem;color:var(--accent);line-height:1.5;padding:14px 0 14px 20px;position:relative;"><span style="position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:block;"></span>Search filter updated with options to include time, popularity and other factors</li>
+            <li style="font-size:1.1rem;color:var(--accent);line-height:1.5;padding:14px 0 14px 20px;position:relative;"><span style="position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--text-dim);display:block;"></span>A friends tab in the feed would be a useful addition</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 10 — JOURNEY 2 (NORA) — Emotional Graph
+     ═══════════════════════════════════════════════ -->
+<section class="slide" id="journey2">
+  <p class="slide-label reveal">User Journey</p>
+  <h1 class="slide-title reveal reveal-delay-1">Nora's Journey</h1>
+  <div class="jg-wrap reveal reveal-delay-2" id="j2-graph">
+    <div class="jg-header">
+      <span class="jg-title">Emotional Journey</span>
+      <div class="jg-legend">
+        <span><span style="color:#4ade80;margin-right:4px;">&#9679;</span>Positive</span>
+        <span><span style="color:#f87171;margin-right:4px;">&#9679;</span>Negative</span>
+      </div>
+    </div>
+    <div class="jg-chart" id="j2-chart">
+      <svg width="1060" height="420" id="j2-svg">
+        <defs>
+          <filter id="jg-glow2"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <line x1="80" y1="240" x2="1020" y2="240" stroke="#ffffff10" stroke-width="1" stroke-dasharray="4 8"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 11 — 3 MAIN PROBLEMS
+     ═══════════════════════════════════════════════ -->
+<section class="slide" id="problems">
+  <p class="slide-label reveal">Key Findings</p>
+  <h1 class="slide-title reveal reveal-delay-1">3 Core Problems</h1>
+  <div class="problems-grid">
+    <div class="problem-card reveal reveal-delay-1">
+      <span class="problem-number">01</span>
+      <h3>Cluttered UI Design &amp; Redundant Navigation</h3>
+      <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;">
+        <span style="background:rgba(248,113,113,0.12);color:#f87171;padding:4px 14px;border-radius:20px;font-size:0.85rem;">"Too many symbols and buttons" — Interview</span>
+        <span style="background:rgba(248,113,113,0.12);color:#f87171;padding:4px 14px;border-radius:20px;font-size:0.85rem;">"Like button size decreased, causes misclicks" — YouTube</span>
+        <span style="background:rgba(248,113,113,0.12);color:#f87171;padding:4px 14px;border-radius:20px;font-size:0.85rem;">"Left side menu is still too crowded" — YouTube</span>
+      </div>
+    </div>
+    <div class="problem-card reveal reveal-delay-2">
+      <span class="problem-number">02</span>
+      <h3>Lack of Filters, Customization &amp; Personalization</h3>
+      <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;">
+        <span style="background:rgba(250,204,21,0.12);color:#facc15;padding:4px 14px;border-radius:20px;font-size:0.85rem;">"Can't search liked posts, have to scroll forever" — YouTube</span>
+        <span style="background:rgba(250,204,21,0.12);color:#facc15;padding:4px 14px;border-radius:20px;font-size:0.85rem;">"Filtering in search lacks options" — Persona</span>
+        <span style="background:rgba(250,204,21,0.12);color:#facc15;padding:4px 14px;border-radius:20px;font-size:0.85rem;">"Notifications grouped with no filtering" — YouTube</span>
+      </div>
+    </div>
+    <div class="problem-card reveal reveal-delay-3">
+      <span class="problem-number">03</span>
+      <h3>Lost User Trust: Forced AI &amp; Fake Accounts</h3>
+      <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;">
+        <span style="background:rgba(96,165,250,0.12);color:#60a5fa;padding:4px 14px;border-radius:20px;font-size:0.85rem;">"Finding the Grok button was not easy, he hates the feature" — Interview</span>
+        <span style="background:rgba(96,165,250,0.12);color:#60a5fa;padding:4px 14px;border-radius:20px;font-size:0.85rem;">"I don't know what are the lists?? What is studio lab??" — Interview</span>
+        <span style="background:rgba(96,165,250,0.12);color:#60a5fa;padding:4px 14px;border-radius:20px;font-size:0.85rem;">"AI symbol was confusing, didn't know it was AI" — Interview</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 12 — NEXT STEPS
+     ═══════════════════════════════════════════════ -->
+<section class="slide" id="nextsteps">
+  <p class="slide-label reveal">Looking Ahead</p>
+  <h1 class="slide-title reveal reveal-delay-1">Next Steps</h1>
+  <div class="next-steps">
+    <div class="step-item reveal reveal-delay-2">
+      <span class="step-num">01</span>
+      <div>
+        <h3>Refining Information Architecture</h3>
+      </div>
+    </div>
+    <div class="step-item reveal reveal-delay-3">
+      <span class="step-num">02</span>
+      <div>
+        <h3>Cleaning Up the UI Design</h3>
+      </div>
+    </div>
+    <div class="step-item reveal reveal-delay-4">
+      <span class="step-num">03</span>
+      <div>
+        <h3>Add an AI-Customizable Feature to Filter Feed</h3>
+      </div>
+    </div>
+  </div>
+  <p class="footer-note reveal reveal-delay-5">X Team · Checkpoint 1 · DI Spring 2026</p>
+</section>
+
+<script>
+  // ── Drifting Stars ──────────────────────────────
+  (function createStars() {
+    const container = document.getElementById('starfield');
+    const count = 60;
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement('div');
+      s.classList.add('star');
+      s.style.left = Math.random() * 100 + '%';
+      s.style.top = (Math.random() * 120 + 10) + '%';
+      s.style.setProperty('--drift-dur', (15 + Math.random() * 25) + 's');
+      s.style.setProperty('--fade-dur', (3 + Math.random() * 5) + 's');
+      s.style.setProperty('--delay', (Math.random() * 20) + 's');
+      s.style.setProperty('--star-opacity', (0.2 + Math.random() * 0.6).toFixed(2));
+      const size = (1 + Math.random() * 2.5) + 'px';
+      s.style.width = size;
+      s.style.height = size;
+      container.appendChild(s);
+    }
+  })();
+
+  // ── Scroll Reveal ──────────────────────────────
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ── Phone mockup annotation trigger ───────────
+  const phoneObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.phone-mockup').forEach(el => phoneObserver.observe(el));
+
+  // ── Count-up number animation ───────────────
+  const countObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !entry.target.dataset.counted) {
+        entry.target.dataset.counted = 'true';
+        const target = +entry.target.dataset.target;
+        const duration = 1800;
+        const start = performance.now();
+        const easeOut = t => 1 - Math.pow(1 - t, 3);
+        function tick(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const value = Math.round(easeOut(progress) * target);
+          entry.target.textContent = value;
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.count-up').forEach(el => countObserver.observe(el));
+
+  // ── Journey Graph — JSX Port (Vanilla JS) ──────
+  (function initJourneyGraph() {
+    const PTS = [
+      { x: 110,  y: 170, label: 'Opens App',      emotion: 'Hopeful',    emoji: '\u{1F60A}', color: '#4ade80', glow: 'rgba(74,222,128,0.4)' },
+      { x: 320,  y: 225, label: 'Scrolls Feed',   emotion: 'Curious',    emoji: '\u{1F914}', color: '#38bdf8', glow: 'rgba(56,189,248,0.4)' },
+      { x: 530,  y: 280, label: 'Sees Clutter',   emotion: 'Annoyed',    emoji: '\u{1F624}', color: '#fbbf24', glow: 'rgba(251,191,36,0.4)' },
+      { x: 740,  y: 320, label: 'Searches Topic',  emotion: 'Frustrated', emoji: '\u{1F621}', color: '#f97316', glow: 'rgba(249,115,22,0.4)' },
+      { x: 950,  y: 358, label: 'Gives Up',        emotion: 'Defeated',   emoji: '\u{1F62D}', color: '#f87171', glow: 'rgba(248,113,113,0.4)' },
+    ];
+
+    const SEQ = { DRAW_MS: 1400, SPARKLE_HOLD: 400, LABEL_IN: 400, LABEL_HOLD: 3000, LABEL_OUT: 500, EMOJI_IN: 500, BADGE_IN: 500, DONE_WAIT: 900 };
+
+    function segPath(i) {
+      const p0 = PTS[i], p1 = PTS[i + 1];
+      const dx = (p1.x - p0.x) * 0.45;
+      return 'M ' + p0.x + ' ' + p0.y + ' C ' + (p0.x + dx) + ' ' + p0.y + ' ' + (p1.x - dx) + ' ' + p1.y + ' ' + p1.x + ' ' + p1.y;
+    }
+
+    const graph = document.getElementById('j1-graph');
+    const chart = document.getElementById('j1-chart');
+    const svg = document.getElementById('j1-svg');
+    if (!graph || !svg) return;
+
+    const ns = 'http://www.w3.org/2000/svg';
+    let started = false;
+
+    // Add per-segment gradients
+    const defs = svg.querySelector('defs');
+    for (let i = 0; i < 4; i++) {
+      const grad = document.createElementNS(ns, 'linearGradient');
+      grad.id = 'seg' + i;
+      grad.setAttribute('gradientUnits', 'userSpaceOnUse');
+      grad.setAttribute('x1', PTS[i].x); grad.setAttribute('y1', PTS[i].y);
+      grad.setAttribute('x2', PTS[i + 1].x); grad.setAttribute('y2', PTS[i + 1].y);
+      const s1 = document.createElementNS(ns, 'stop'); s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', PTS[i].color);
+      const s2 = document.createElementNS(ns, 'stop'); s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', PTS[i + 1].color);
+      grad.appendChild(s1); grad.appendChild(s2);
+      defs.appendChild(grad);
+    }
+
+    // Add x-axis labels
+    PTS.forEach(pt => {
+      const lbl = document.createElement('div');
+      lbl.className = 'jg-xlabel';
+      lbl.textContent = pt.label;
+      lbl.style.left = pt.x + 'px';
+      lbl.style.top = '392px';
+      chart.appendChild(lbl);
+    });
+
+    // Segment drawing state
+    const segProgs = [0, 0, 0, 0];
+    const segGlowEls = [], segLineEls = [];
+    for (let i = 0; i < 4; i++) {
+      const d = segPath(i);
+      // Glow layer
+      const gp = document.createElementNS(ns, 'path');
+      gp.setAttribute('d', d); gp.setAttribute('fill', 'none');
+      gp.setAttribute('stroke', 'url(#seg' + i + ')');
+      gp.setAttribute('stroke-width', '8'); gp.setAttribute('stroke-linecap', 'round');
+      gp.setAttribute('opacity', '0.3'); gp.setAttribute('filter', 'url(#jg-glow)');
+      gp.setAttribute('pathLength', '1'); gp.setAttribute('stroke-dasharray', '1'); gp.setAttribute('stroke-dashoffset', '1');
+      svg.appendChild(gp); segGlowEls.push(gp);
+      // Main line
+      const lp = document.createElementNS(ns, 'path');
+      lp.setAttribute('d', d); lp.setAttribute('fill', 'none');
+      lp.setAttribute('stroke', 'url(#seg' + i + ')');
+      lp.setAttribute('stroke-width', '3'); lp.setAttribute('stroke-linecap', 'round');
+      lp.setAttribute('pathLength', '1'); lp.setAttribute('stroke-dasharray', '1'); lp.setAttribute('stroke-dashoffset', '1');
+      svg.appendChild(lp); segLineEls.push(lp);
+    }
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    function drawSeg(i) {
+      return new Promise(resolve => {
+        const start = performance.now();
+        function tick(now) {
+          let t = Math.min((now - start) / SEQ.DRAW_MS, 1);
+          const e = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+          const off = String(1 - e);
+          segGlowEls[i].setAttribute('stroke-dashoffset', off);
+          segLineEls[i].setAttribute('stroke-dashoffset', off);
+          if (t < 1) requestAnimationFrame(tick); else resolve();
+        }
+        requestAnimationFrame(tick);
+      });
+    }
+
+    function showDot(pt) {
+      // Sparkle rings
+      for (let r = 0; r < 2; r++) {
+        const ring = document.createElementNS(ns, 'circle');
+        ring.setAttribute('cx', pt.x); ring.setAttribute('cy', pt.y); ring.setAttribute('r', '10');
+        ring.setAttribute('fill', 'none'); ring.setAttribute('stroke', pt.color);
+        ring.setAttribute('stroke-width', r === 0 ? '2' : '1.5'); ring.setAttribute('opacity', '0');
+        ring.style.animation = 'jg-expandRing 1s ease-out ' + (r * 0.25) + 's forwards';
+        svg.appendChild(ring);
+        setTimeout(() => ring.remove(), 1500);
+      }
+      // Outer ring
+      const outer = document.createElementNS(ns, 'circle');
+      outer.setAttribute('cx', pt.x); outer.setAttribute('cy', pt.y); outer.setAttribute('r', '13');
+      outer.setAttribute('fill', 'none'); outer.setAttribute('stroke', pt.color);
+      outer.setAttribute('stroke-width', '1.5'); outer.setAttribute('opacity', '0.35');
+      svg.appendChild(outer);
+      // Dot
+      const dot = document.createElementNS(ns, 'circle');
+      dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y); dot.setAttribute('r', '8');
+      dot.setAttribute('fill', pt.color); dot.setAttribute('filter', 'url(#jg-glow)');
+      dot.style.transformOrigin = pt.x + 'px ' + pt.y + 'px';
+      dot.style.animation = 'jg-popDot 0.4s ease-out forwards';
+      svg.appendChild(dot);
+    }
+
+    function showLabel(pt) {
+      const el = document.createElement('div');
+      el.className = 'jg-overlay jg-step-label';
+      el.textContent = pt.label;
+      el.style.background = pt.color;
+      el.style.left = pt.x + 'px';
+      el.style.bottom = (420 - pt.y + 14) + 'px';
+      el.style.animation = 'jg-labelSlideIn 0.4s ease forwards';
+      chart.appendChild(el);
+      return el;
+    }
+
+    function rollUpLabel(el) {
+      el.style.animation = 'jg-labelRollUp 0.5s ease forwards';
+      setTimeout(() => el.remove(), 500);
+    }
+
+    function showEmoji(pt) {
+      const el = document.createElement('div');
+      el.className = 'jg-overlay jg-emoji';
+      el.textContent = pt.emoji;
+      el.style.left = pt.x + 'px';
+      el.style.bottom = (420 - pt.y + 50) + 'px';
+      el.style.animation = 'jg-emojiBounce 0.55s cubic-bezier(.36,.07,.19,.97) forwards';
+      chart.appendChild(el);
+    }
+
+    function showBadge(pt) {
+      const el = document.createElement('div');
+      el.className = 'jg-overlay jg-badge';
+      el.textContent = pt.emotion;
+      el.style.color = pt.color;
+      el.style.borderWidth = '1.5px';
+      el.style.borderStyle = 'solid';
+      el.style.borderColor = pt.color;
+      el.style.boxShadow = '0 0 10px ' + pt.glow;
+      el.style.left = pt.x + 'px';
+      el.style.bottom = (420 - pt.y + 14) + 'px';
+      el.style.animation = 'jg-badgePop 0.45s ease forwards';
+      chart.appendChild(el);
+    }
+
+    async function animatePoint(i) {
+      const pt = PTS[i];
+      showDot(pt);
+      await delay(SEQ.SPARKLE_HOLD);
+      const lbl = showLabel(pt);
+      await delay(SEQ.LABEL_HOLD);
+      rollUpLabel(lbl);
+      await delay(SEQ.LABEL_OUT);
+      showEmoji(pt);
+      await delay(SEQ.EMOJI_IN);
+      showBadge(pt);
+      await delay(SEQ.BADGE_IN + SEQ.DONE_WAIT);
+    }
+
+    async function runAll() {
+      await delay(600);
+      for (let i = 0; i < PTS.length; i++) {
+        await animatePoint(i);
+        if (i < 4) await drawSeg(i);
+      }
+    }
+
+    const jObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !started) {
+          started = true;
+          runAll();
+        }
+      });
+    }, { threshold: 0.25 });
+    jObs.observe(graph);
+  })();
+
+  // ── Nora's Journey Graph ──────────────────────
+  (function initNorJourney() {
+    const PTS = [
+      { x: 110,  y: 190, label: 'Opens Feed',       emotion: 'Neutral',      emoji: '\u{1F610}', color: '#38bdf8', glow: 'rgba(56,189,248,0.4)' },
+      { x: 320,  y: 240, label: 'Sees Random Posts', emotion: 'Confused',     emoji: '\u{1F615}', color: '#a78bfa', glow: 'rgba(167,139,250,0.4)' },
+      { x: 530,  y: 290, label: 'Tries Search',      emotion: 'Annoyed',      emoji: '\u{1F624}', color: '#fbbf24', glow: 'rgba(251,191,36,0.4)' },
+      { x: 740,  y: 330, label: 'Messages Tab',      emotion: 'Frustrated',   emoji: '\u{1F621}', color: '#f97316', glow: 'rgba(249,115,22,0.4)' },
+      { x: 950,  y: 290, label: 'Switches to IG',    emotion: 'Relieved',     emoji: '\u{1F60C}', color: '#4ade80', glow: 'rgba(74,222,128,0.4)' },
+    ];
+
+    const SEQ = { DRAW_MS: 1400, SPARKLE_HOLD: 400, LABEL_IN: 400, LABEL_HOLD: 3000, LABEL_OUT: 500, EMOJI_IN: 500, BADGE_IN: 500, DONE_WAIT: 900 };
+
+    function segPath(i) {
+      const p0 = PTS[i], p1 = PTS[i + 1];
+      const dx = (p1.x - p0.x) * 0.45;
+      return 'M ' + p0.x + ' ' + p0.y + ' C ' + (p0.x + dx) + ' ' + p0.y + ' ' + (p1.x - dx) + ' ' + p1.y + ' ' + p1.x + ' ' + p1.y;
+    }
+
+    const graph = document.getElementById('j2-graph');
+    const chart = document.getElementById('j2-chart');
+    const svg = document.getElementById('j2-svg');
+    if (!graph || !svg) return;
+
+    const ns = 'http://www.w3.org/2000/svg';
+    let started = false;
+
+    const defs = svg.querySelector('defs');
+    for (let i = 0; i < 4; i++) {
+      const grad = document.createElementNS(ns, 'linearGradient');
+      grad.id = 'n2seg' + i;
+      grad.setAttribute('gradientUnits', 'userSpaceOnUse');
+      grad.setAttribute('x1', PTS[i].x); grad.setAttribute('y1', PTS[i].y);
+      grad.setAttribute('x2', PTS[i + 1].x); grad.setAttribute('y2', PTS[i + 1].y);
+      const s1 = document.createElementNS(ns, 'stop'); s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', PTS[i].color);
+      const s2 = document.createElementNS(ns, 'stop'); s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', PTS[i + 1].color);
+      grad.appendChild(s1); grad.appendChild(s2);
+      defs.appendChild(grad);
+    }
+
+    PTS.forEach(pt => {
+      const lbl = document.createElement('div');
+      lbl.className = 'jg-xlabel';
+      lbl.textContent = pt.label;
+      lbl.style.left = pt.x + 'px';
+      lbl.style.top = '392px';
+      chart.appendChild(lbl);
+    });
+
+    const segGlowEls = [], segLineEls = [];
+    for (let i = 0; i < 4; i++) {
+      const d = segPath(i);
+      const gp = document.createElementNS(ns, 'path');
+      gp.setAttribute('d', d); gp.setAttribute('fill', 'none');
+      gp.setAttribute('stroke', 'url(#n2seg' + i + ')');
+      gp.setAttribute('stroke-width', '8'); gp.setAttribute('stroke-linecap', 'round');
+      gp.setAttribute('opacity', '0.3'); gp.setAttribute('filter', 'url(#jg-glow2)');
+      gp.setAttribute('pathLength', '1'); gp.setAttribute('stroke-dasharray', '1'); gp.setAttribute('stroke-dashoffset', '1');
+      svg.appendChild(gp); segGlowEls.push(gp);
+      const lp = document.createElementNS(ns, 'path');
+      lp.setAttribute('d', d); lp.setAttribute('fill', 'none');
+      lp.setAttribute('stroke', 'url(#n2seg' + i + ')');
+      lp.setAttribute('stroke-width', '3'); lp.setAttribute('stroke-linecap', 'round');
+      lp.setAttribute('pathLength', '1'); lp.setAttribute('stroke-dasharray', '1'); lp.setAttribute('stroke-dashoffset', '1');
+      svg.appendChild(lp); segLineEls.push(lp);
+    }
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    function drawSeg(i) {
+      return new Promise(resolve => {
+        const start = performance.now();
+        function tick(now) {
+          let t = Math.min((now - start) / SEQ.DRAW_MS, 1);
+          const e = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+          const off = String(1 - e);
+          segGlowEls[i].setAttribute('stroke-dashoffset', off);
+          segLineEls[i].setAttribute('stroke-dashoffset', off);
+          if (t < 1) requestAnimationFrame(tick); else resolve();
+        }
+        requestAnimationFrame(tick);
+      });
+    }
+
+    function showDot(pt) {
+      for (let r = 0; r < 2; r++) {
+        const ring = document.createElementNS(ns, 'circle');
+        ring.setAttribute('cx', pt.x); ring.setAttribute('cy', pt.y); ring.setAttribute('r', '10');
+        ring.setAttribute('fill', 'none'); ring.setAttribute('stroke', pt.color);
+        ring.setAttribute('stroke-width', r === 0 ? '2' : '1.5'); ring.setAttribute('opacity', '0');
+        ring.style.animation = 'jg-expandRing 1s ease-out ' + (r * 0.25) + 's forwards';
+        svg.appendChild(ring);
+        setTimeout(() => ring.remove(), 1500);
+      }
+      const outer = document.createElementNS(ns, 'circle');
+      outer.setAttribute('cx', pt.x); outer.setAttribute('cy', pt.y); outer.setAttribute('r', '13');
+      outer.setAttribute('fill', 'none'); outer.setAttribute('stroke', pt.color);
+      outer.setAttribute('stroke-width', '1.5'); outer.setAttribute('opacity', '0.35');
+      svg.appendChild(outer);
+      const dot = document.createElementNS(ns, 'circle');
+      dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y); dot.setAttribute('r', '8');
+      dot.setAttribute('fill', pt.color); dot.setAttribute('filter', 'url(#jg-glow2)');
+      dot.style.transformOrigin = pt.x + 'px ' + pt.y + 'px';
+      dot.style.animation = 'jg-popDot 0.4s ease-out forwards';
+      svg.appendChild(dot);
+    }
+
+    function showLabel(pt) {
+      const el = document.createElement('div');
+      el.className = 'jg-overlay jg-step-label';
+      el.textContent = pt.label;
+      el.style.background = pt.color;
+      el.style.left = pt.x + 'px';
+      el.style.bottom = (420 - pt.y + 14) + 'px';
+      el.style.animation = 'jg-labelSlideIn 0.4s ease forwards';
+      chart.appendChild(el);
+      return el;
+    }
+
+    function rollUpLabel(el) {
+      el.style.animation = 'jg-labelRollUp 0.5s ease forwards';
+      setTimeout(() => el.remove(), 500);
+    }
+
+    function showEmoji(pt) {
+      const el = document.createElement('div');
+      el.className = 'jg-overlay jg-emoji';
+      el.textContent = pt.emoji;
+      el.style.left = pt.x + 'px';
+      el.style.bottom = (420 - pt.y + 50) + 'px';
+      el.style.animation = 'jg-emojiBounce 0.55s cubic-bezier(.36,.07,.19,.97) forwards';
+      chart.appendChild(el);
+    }
+
+    function showBadge(pt) {
+      const el = document.createElement('div');
+      el.className = 'jg-overlay jg-badge';
+      el.textContent = pt.emotion;
+      el.style.color = pt.color;
+      el.style.borderWidth = '1.5px';
+      el.style.borderStyle = 'solid';
+      el.style.borderColor = pt.color;
+      el.style.boxShadow = '0 0 10px ' + pt.glow;
+      el.style.left = pt.x + 'px';
+      el.style.bottom = (420 - pt.y + 14) + 'px';
+      el.style.animation = 'jg-badgePop 0.45s ease forwards';
+      chart.appendChild(el);
+    }
+
+    async function animatePoint(i) {
+      const pt = PTS[i];
+      showDot(pt);
+      await delay(SEQ.SPARKLE_HOLD);
+      const lbl = showLabel(pt);
+      await delay(SEQ.LABEL_HOLD);
+      rollUpLabel(lbl);
+      await delay(SEQ.LABEL_OUT);
+      showEmoji(pt);
+      await delay(SEQ.EMOJI_IN);
+      showBadge(pt);
+      await delay(SEQ.BADGE_IN + SEQ.DONE_WAIT);
+    }
+
+    async function runAll() {
+      await delay(600);
+      for (let i = 0; i < PTS.length; i++) {
+        await animatePoint(i);
+        if (i < 4) await drawSeg(i);
+      }
+    }
+
+    const jObs2 = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !started) {
+          started = true;
+          runAll();
+        }
+      });
+    }, { threshold: 0.25 });
+    jObs2.observe(graph);
+  })();
+</script>
+
+</body>
+</html>
